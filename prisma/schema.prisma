@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum HouseStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+  PENDING
+}
+
+enum AssetCondition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+}
+
+enum AssetCategory {
+  FURNITURE
+  ELECTRONICS
+  APPLIANCES
+  UTILITIES
+  DECORATION
+}
+
+enum ImageType {
+  ROOM_PHOTO
+  INTERIOR
+  FACILITY
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MaintenanceStatus {
+  REPORTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model House {
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(255)
+  address     String      @db.Text
+  ownerId     String
+  description String?     @db.Text
+  totalArea   Decimal     @db.Decimal(10, 2)
+  totalRooms  Int
+  status      HouseStatus @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  createdBy   Int
+  updatedBy   Int
+
+  // Relations
+  rooms  Room[]
+  qrCode QRCode?
+
+  @@map("houses")
+}
+
+model Room {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(255)
+  roomNumber  String     @db.VarChar(50)
+  area        Decimal    @db.Decimal(10, 2)
+  baseRent    Decimal    @db.Decimal(10, 2)
+  status      RoomStatus @default(AVAILABLE)
+  houseId     Int
+  description String?    @db.Text
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  createdBy   Int
+  updatedBy   Int
+
+  // Relations
+  house           House             @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  images          RoomImage[]
+  roomAssets      RoomAsset[]
+  tenantContracts TenantContract[]
+  maintenances    Maintenance[]
+
+  @@map("rooms")
+}
+
+model RoomImage {
+  id         Int       @id @default(autoincrement())
+  roomId     Int
+  imageUrl   String    @db.Text
+  imageType  ImageType
+  isPrimary  Boolean   @default(false)
+  uploadedAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  createdBy  Int
+  updatedBy  Int
+
+  // Relations
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("roomImages")
+}
+
+model Asset {
+  id          Int            @id @default(autoincrement())
+  name        String         @db.VarChar(255)
+  category    AssetCategory
+  condition   AssetCondition
+  value       Decimal        @db.Decimal(10, 2)
+  description String?        @db.Text
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  createdBy   Int
+  updatedBy   Int
+
+  // Relations
+  roomAssets RoomAsset[]
+
+  @@map("assets")
+}
+
+model RoomAsset {
+  id        Int            @id @default(autoincrement())
+  roomId    Int
+  assetId   Int
+  quantity  Int
+  condition AssetCondition
+  addedAt   DateTime       @default(now())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  createdBy Int
+  updatedBy Int
+
+  // Relations
+  room  Room  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@map("roomAssets")
+}
+
+model TenantContract {
+  id          Int            @id @default(autoincrement())
+  tenantId    String
+  roomId      Int
+  monthlyRent Decimal        @db.Decimal(10, 2)
+  deposit     Decimal        @db.Decimal(10, 2)
+  startDate   DateTime       @db.Date
+  endDate     DateTime       @db.Date
+  status      ContractStatus @default(PENDING)
+  terms       String?        @db.Text
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  createdBy   Int
+  updatedBy   Int
+
+  // Relations
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("tenantContracts")
+}
+
+model QRCode {
+  id        Int       @id @default(autoincrement())
+  houseId   Int       @unique
+  qrData    String    @db.Text
+  imageUrl  String    @db.Text
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  createdBy Int
+  updatedBy Int
+  expiresAt DateTime?
+
+  // Relations
+  house House @relation(fields: [houseId], references: [id], onDelete: Cascade)
+
+  @@map("qrCodes")
+}
+
+model Maintenance {
+  id          Int                 @id @default(autoincrement())
+  roomId      Int
+  reportedBy  Int
+  assignedTo  Int?
+  title       String              @db.VarChar(255)
+  description String              @db.Text
+  priority    MaintenancePriority @default(MEDIUM)
+  status      MaintenanceStatus   @default(REPORTED)
+  cost        Decimal?            @db.Decimal(10, 2)
+  reportedAt  DateTime            @default(now())
+  completedAt DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  createdBy   Int
+  updatedBy   Int
+
+  // Relations
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("maintenances")
+}
