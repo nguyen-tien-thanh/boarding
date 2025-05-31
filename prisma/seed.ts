@@ -230,12 +230,50 @@ async function main() {
 
   console.log('✅ Rooms created successfully');
 
+  const assetCategories = await Promise.all([
+    prisma.assetCategory.create({
+      data: {
+        name: 'FURNITURE',
+        createdBy: systemUserId,
+        updatedBy: systemUserId,
+      },
+    }),
+    prisma.assetCategory.create({
+      data: {
+        name: 'ELECTRONICS',
+        createdBy: systemUserId,
+        updatedBy: systemUserId,
+      },
+    }),
+    prisma.assetCategory.create({
+      data: {
+        name: 'APPLIANCES',
+        createdBy: systemUserId,
+        updatedBy: systemUserId,
+      },
+    }),
+    prisma.assetCategory.create({
+      data: {
+        name: 'UTILITIES',
+        createdBy: systemUserId,
+        updatedBy: systemUserId,
+      },
+    }),
+    prisma.assetCategory.create({
+      data: {
+        name: 'DECORATION',
+        createdBy: systemUserId,
+        updatedBy: systemUserId,
+      },
+    }),
+  ]);
+
   // Create assets
   const assets = await Promise.all([
     prisma.asset.create({
       data: {
         name: 'Daikin Air Conditioner 1.5HP',
-        category: 'ELECTRONICS',
+        categoryId: assetCategories[1].id,
         condition: AssetCondition.GOOD,
         value: 8000000,
         description:
@@ -247,7 +285,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: 'Premium Single Bed',
-        category: 'FURNITURE',
+        categoryId: assetCategories[0].id,
         condition: AssetCondition.NEW,
         value: 2500000,
         description: 'High-quality wooden single bed with orthopedic mattress',
@@ -258,7 +296,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: 'Modern Study Desk',
-        category: 'FURNITURE',
+        categoryId: assetCategories[0].id,
         condition: AssetCondition.GOOD,
         value: 1500000,
         description:
@@ -270,7 +308,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: '3-Door Wardrobe',
-        category: 'FURNITURE',
+        categoryId: assetCategories[0].id,
         condition: AssetCondition.GOOD,
         value: 3000000,
         description:
@@ -282,7 +320,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: 'Samsung Mini Refrigerator',
-        category: 'APPLIANCES',
+        categoryId: assetCategories[2].id,
         condition: AssetCondition.NEW,
         value: 12000000,
         description: 'Samsung 200L mini refrigerator with energy saving mode',
@@ -293,7 +331,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: 'LED Ceiling Light',
-        category: 'UTILITIES',
+        categoryId: assetCategories[3].id,
         condition: AssetCondition.NEW,
         value: 800000,
         description: 'Energy-efficient LED ceiling light with dimmer function',
@@ -304,7 +342,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: 'Office Chair',
-        category: 'FURNITURE',
+        categoryId: assetCategories[0].id,
         condition: AssetCondition.GOOD,
         value: 1200000,
         description:
@@ -316,7 +354,7 @@ async function main() {
     prisma.asset.create({
       data: {
         name: 'Wall Fan',
-        category: 'ELECTRONICS',
+        categoryId: assetCategories[3].id,
         condition: AssetCondition.FAIR,
         value: 600000,
         description:
@@ -610,13 +648,13 @@ async function main() {
     {
       roomId: rooms[0].id,
       imageUrl: 'https://example.com/images/room-a1-interior.jpg',
-      imageType: ImageType.INTERIOR,
+      imageType: ImageType.ROOM_PHOTO,
       isPrimary: false,
     },
     {
       roomId: rooms[0].id,
       imageUrl: 'https://example.com/images/room-a1-facility.jpg',
-      imageType: ImageType.FACILITY,
+      imageType: ImageType.ROOM_PHOTO,
       isPrimary: false,
     },
 
@@ -630,7 +668,7 @@ async function main() {
     {
       roomId: rooms[1].id,
       imageUrl: 'https://example.com/images/room-a2-interior.jpg',
-      imageType: ImageType.INTERIOR,
+      imageType: ImageType.ROOM_PHOTO,
       isPrimary: false,
     },
 
@@ -644,7 +682,7 @@ async function main() {
     {
       roomId: rooms[2].id,
       imageUrl: 'https://example.com/images/room-b1-bathroom.jpg',
-      imageType: ImageType.FACILITY,
+      imageType: ImageType.ROOM_PHOTO,
       isPrimary: false,
     },
 
@@ -658,7 +696,7 @@ async function main() {
     {
       roomId: rooms[4].id,
       imageUrl: 'https://example.com/images/room-g1-garden-view.jpg',
-      imageType: ImageType.FACILITY,
+      imageType: ImageType.ROOM_PHOTO,
       isPrimary: false,
     },
 
@@ -680,14 +718,14 @@ async function main() {
     {
       roomId: rooms[6].id,
       imageUrl: 'https://example.com/images/room-e1-workspace.jpg',
-      imageType: ImageType.INTERIOR,
+      imageType: ImageType.ROOM_PHOTO,
       isPrimary: false,
     },
   ];
 
   await Promise.all(
     roomImages.map((img) =>
-      prisma.roomImage.create({
+      prisma.image.create({
         data: {
           ...img,
           createdBy: systemUserId,

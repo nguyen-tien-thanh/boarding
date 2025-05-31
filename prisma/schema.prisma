@@ -38,18 +38,10 @@ enum AssetCondition {
   DAMAGED
 }
 
-enum AssetCategory {
-  FURNITURE
-  ELECTRONICS
-  APPLIANCES
-  UTILITIES
-  DECORATION
-}
-
 enum ImageType {
   ROOM_PHOTO
-  INTERIOR
-  FACILITY
+  HOUSE_PHOTO
+  ASSET_PHOTO
 }
 
 enum MaintenancePriority {
@@ -81,8 +73,9 @@ model House {
   updatedBy   Int
 
   // Relations
-  rooms  Room[]
-  qrCode QRCode?
+  rooms     Room[]
+  qrCode    QRCode?
+  images    Image[]
 
   @@map("houses")
 }
@@ -103,7 +96,7 @@ model Room {
 
   // Relations
   house           House             @relation(fields: [houseId], references: [id], onDelete: Cascade)
-  images          RoomImage[]
+  images          Image[]
   roomAssets      RoomAsset[]
   tenantContracts TenantContract[]
   maintenances    Maintenance[]
@@ -111,9 +104,8 @@ model Room {
   @@map("rooms")
 }
 
-model RoomImage {
+model Image {
   id         Int       @id @default(autoincrement())
-  roomId     Int
   imageUrl   String    @db.Text
   imageType  ImageType
   isPrimary  Boolean   @default(false)
@@ -124,15 +116,35 @@ model RoomImage {
   updatedBy  Int
 
   // Relations
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  houseId    Int?
+  roomId     Int?
+  assetId    Int?
+  house      House?    @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  room       Room?     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  asset      Asset?    @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
-  @@map("roomImages")
+  @@map("images")
+}
+
+model AssetCategory {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   Int
+  updatedBy   Int
+
+  // Relations
+  assets Asset[]
+
+  @@map("assetCategories")
 }
 
 model Asset {
   id          Int            @id @default(autoincrement())
   name        String         @db.VarChar(255)
-  category    AssetCategory
+  categoryId  Int
   condition   AssetCondition
   value       Decimal        @db.Decimal(10, 2)
   description String?        @db.Text
@@ -142,7 +154,9 @@ model Asset {
   updatedBy   Int
 
   // Relations
+  category   AssetCategory @relation(fields: [categoryId], references: [id])
   roomAssets RoomAsset[]
+  images     Image[]
 
   @@map("assets")
 }

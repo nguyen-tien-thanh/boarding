@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaService } from './config/prisma.config';
-import { BoardingConsumer } from './consumers/boarding.consumer';
-import { BoardingService } from './services/boarding.service';
+import { AssetModule } from './consumers/asset/asset.module';
+import { QrCodeModule } from './consumers/qr-code/qr-code.module';
+import { MaintenanceModule } from './consumers/maintenance/maintenance.module';
+import { HouseModule } from './consumers/house/house.module';
+import { RoomModule } from './consumers/room/room.module';
+import { RoomAssetModule } from './consumers/room-asset/room-asset.module';
+import { ImageModule } from './consumers/image/image.module';
+import { AssetCategoryModule } from './consumers/asset-category/asset-category.module';
+import { TenantContractModule } from './consumers/tenant-contract/tenant-contract.module';
 import rabbitmqConfig from './config/rabbitmq.config';
 
 @Module({
@@ -13,8 +19,18 @@ import rabbitmqConfig from './config/rabbitmq.config';
       isGlobal: true,
       load: [rabbitmqConfig],
     }),
+    AssetCategoryModule,
+    AssetModule,
+    AssetCategoryModule,
+    HouseModule,
+    ImageModule,
+    MaintenanceModule,
+    QrCodeModule,
+    RoomAssetModule,
+    RoomModule,
+    TenantContractModule,
   ],
-  controllers: [AppController, BoardingConsumer],
-  providers: [AppService, PrismaService, BoardingService],
+  controllers: [AppController],
+  providers: [PrismaService],
 })
 export class AppModule {}

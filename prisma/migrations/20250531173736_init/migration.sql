@@ -11,10 +11,7 @@ CREATE TYPE "ContractStatus" AS ENUM ('ACTIVE', 'EXPIRED', 'TERMINATED', 'PENDIN
 CREATE TYPE "AssetCondition" AS ENUM ('NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED');
 
 -- CreateEnum
-CREATE TYPE "AssetCategory" AS ENUM ('FURNITURE', 'ELECTRONICS', 'APPLIANCES', 'UTILITIES', 'DECORATION');
-
--- CreateEnum
-CREATE TYPE "ImageType" AS ENUM ('ROOM_PHOTO', 'INTERIOR', 'FACILITY');
+CREATE TYPE "ImageType" AS ENUM ('ROOM_PHOTO', 'HOUSE_PHOTO', 'ASSET_PHOTO');
 
 -- CreateEnum
 CREATE TYPE "MaintenancePriority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
@@ -59,9 +56,8 @@ CREATE TABLE "rooms" (
 );
 
 -- CreateTable
-CREATE TABLE "roomImages" (
+CREATE TABLE "images" (
     "id" SERIAL NOT NULL,
-    "roomId" INTEGER NOT NULL,
     "imageUrl" TEXT NOT NULL,
     "imageType" "ImageType" NOT NULL,
     "isPrimary" BOOLEAN NOT NULL DEFAULT false,
@@ -70,15 +66,31 @@ CREATE TABLE "roomImages" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdBy" INTEGER NOT NULL,
     "updatedBy" INTEGER NOT NULL,
+    "houseId" INTEGER,
+    "roomId" INTEGER,
+    "assetId" INTEGER,
 
-    CONSTRAINT "roomImages_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "images_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "assetCategories" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "description" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" INTEGER NOT NULL,
+    "updatedBy" INTEGER NOT NULL,
+
+    CONSTRAINT "assetCategories_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "assets" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
-    "category" "AssetCategory" NOT NULL,
+    "categoryId" INTEGER NOT NULL,
     "condition" "AssetCondition" NOT NULL,
     "value" DECIMAL(10,2) NOT NULL,
     "description" TEXT,
@@ -169,7 +181,16 @@ CREATE UNIQUE INDEX "qrCodes_houseId_key" ON "qrCodes"("houseId");
 ALTER TABLE "rooms" ADD CONSTRAINT "rooms_houseId_fkey" FOREIGN KEY ("houseId") REFERENCES "houses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "roomImages" ADD CONSTRAINT "roomImages_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "images" ADD CONSTRAINT "images_houseId_fkey" FOREIGN KEY ("houseId") REFERENCES "houses"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "images" ADD CONSTRAINT "images_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "images" ADD CONSTRAINT "images_assetId_fkey" FOREIGN KEY ("assetId") REFERENCES "assets"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "assets" ADD CONSTRAINT "assets_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "assetCategories"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "roomAssets" ADD CONSTRAINT "roomAssets_roomId_fkey" FOREIGN KEY ("roomId") REFERENCES "rooms"("id") ON DELETE CASCADE ON UPDATE CASCADE;
