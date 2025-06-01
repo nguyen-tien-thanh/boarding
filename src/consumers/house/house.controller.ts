@@ -1,35 +1,36 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload } from '@nestjs/microservices';
 import { HouseService } from './house.service';
 import { CreateHouseDto } from './dto/create-house.dto';
 import { UpdateHouseDto } from './dto/update-house.dto';
+import { AutoRpcPattern, Filter, IFilter } from 'src/common/decorators';
 
 @Controller()
 export class HouseController {
   constructor(private readonly houseService: HouseService) {}
 
-  @MessagePattern('createHouse')
-  create(@Payload() createHouseDto: CreateHouseDto) {
+  @AutoRpcPattern()
+  async create(@Payload() createHouseDto: CreateHouseDto) {
     return this.houseService.create(createHouseDto);
   }
 
-  @MessagePattern('findAllHouse')
-  findAll() {
-    return this.houseService.findAll();
+  @AutoRpcPattern()
+  async findAll(@Filter() filter: IFilter) {
+    return this.houseService.findAll(filter);
   }
 
-  @MessagePattern('findOneHouse')
-  findOne(@Payload() id: number) {
-    return this.houseService.findOne(id);
+  @AutoRpcPattern()
+  async findOne(@Payload() data: { id: number }) {
+    return this.houseService.findOne(data.id);
   }
 
-  @MessagePattern('updateHouse')
-  update(@Payload() updateHouseDto: UpdateHouseDto) {
+  @AutoRpcPattern()
+  async update(@Payload() updateHouseDto: UpdateHouseDto) {
     return this.houseService.update(updateHouseDto.id, updateHouseDto);
   }
 
-  @MessagePattern('removeHouse')
-  remove(@Payload() id: number) {
+  @AutoRpcPattern()
+  async remove(@Payload() id: number) {
     return this.houseService.remove(id);
   }
 }

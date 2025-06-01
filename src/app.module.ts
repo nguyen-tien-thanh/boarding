@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
 import { PrismaService } from './config/prisma.config';
 import { AssetModule } from './consumers/asset/asset.module';
 import { QrCodeModule } from './consumers/qr-code/qr-code.module';
@@ -21,7 +20,6 @@ import rabbitmqConfig from './config/rabbitmq.config';
     }),
     AssetCategoryModule,
     AssetModule,
-    AssetCategoryModule,
     HouseModule,
     ImageModule,
     MaintenanceModule,
@@ -30,7 +28,7 @@ import rabbitmqConfig from './config/rabbitmq.config';
     RoomModule,
     TenantContractModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [PrismaService],
 })
 export class AppModule {}

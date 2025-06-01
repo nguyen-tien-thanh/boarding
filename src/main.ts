@@ -22,10 +22,11 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 3000);
 
-  console.log(
-    `🚀 Boarding microservice running on port ${process.env.PORT ?? 3000}`,
-  );
-  console.log(`📨 Connected to RabbitMQ: ${rabbitmqConfig.options.urls[0]}`);
-  console.log(`📋 Queue: ${rabbitmqConfig.options.queue}`);
+  console.log('\n -------------------------------------------');
+  console.log(` 🚀 ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(` 🌐 ${process.env.DATABASE_URL}`);
+  console.log(` 📋 ${process.env.RABBITMQ_URL}`);
+  console.log(` 📋 ${process.env.RABBITMQ_QUEUE}`);
+  console.log(' -------------------------------------------\n');
 }
 bootstrap();
