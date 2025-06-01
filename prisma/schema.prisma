@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -38,10 +38,10 @@ enum AssetCondition {
   DAMAGED
 }
 
-enum ImageType {
-  ROOM_PHOTO
-  HOUSE_PHOTO
-  ASSET_PHOTO
+enum EntityType {
+  HOUSE
+  ROOM
+  ASSET
 }
 
 enum MaintenancePriority {
@@ -62,10 +62,10 @@ model House {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(255)
   address     String      @db.Text
-  ownerId     String
+  ownerId     Int
   description String?     @db.Text
   totalArea   Decimal     @db.Decimal(10, 2)
-  totalRooms  Int
+  totalRooms  Int?        @default(0)
   status      HouseStatus @default(ACTIVE)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -75,7 +75,6 @@ model House {
   // Relations
   rooms     Room[]
   qrCode    QRCode?
-  images    Image[]
 
   @@map("houses")
 }
@@ -96,7 +95,6 @@ model Room {
 
   // Relations
   house           House             @relation(fields: [houseId], references: [id], onDelete: Cascade)
-  images          Image[]
   roomAssets      RoomAsset[]
   tenantContracts TenantContract[]
   maintenances    Maintenance[]
@@ -107,7 +105,8 @@ model Room {
 model Image {
   id         Int       @id @default(autoincrement())
   imageUrl   String    @db.Text
-  imageType  ImageType
+  entityType EntityType
+  entityId   Int
   isPrimary  Boolean   @default(false)
   uploadedAt DateTime  @default(now())
   createdAt  DateTime  @default(now())
@@ -115,15 +114,8 @@ model Image {
   createdBy  Int
   updatedBy  Int
 
-  // Relations
-  houseId    Int?
-  roomId     Int?
-  assetId    Int?
-  house      House?    @relation(fields: [houseId], references: [id], onDelete: Cascade)
-  room       Room?     @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  asset      Asset?    @relation(fields: [assetId], references: [id], onDelete: Cascade)
-
   @@map("images")
+  @@index([entityType, entityId])
 }
 
 model AssetCategory {
@@ -156,7 +148,6 @@ model Asset {
   // Relations
   category   AssetCategory @relation(fields: [categoryId], references: [id])
   roomAssets RoomAsset[]
-  images     Image[]
 
   @@map("assets")
 }
@@ -182,7 +173,7 @@ model RoomAsset {
 
 model TenantContract {
   id          Int            @id @default(autoincrement())
-  tenantId    String
+  tenantId    Int
   roomId      Int
   monthlyRent Decimal        @db.Decimal(10, 2)
   deposit     Decimal        @db.Decimal(10, 2)

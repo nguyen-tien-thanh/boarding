@@ -1,19 +1,22 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15-alpine
-    container_name: boarding_postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: boarding
-    ports:
-      - '5433:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  mysql:
+    container_name: mysql
+    image: mysql:8.0
+    env_file:
+      - .env
     networks:
       - boarding_network
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_DATABASE: ${DB_DATABASE_NAME}
+      MYSQL_DATA: /var/lib/mysql
+    ports:
+      - ${DB_PORT}:3306
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
@@ -30,7 +33,7 @@ services:
       - boarding_network
 
 volumes:
-  postgres_data:
+  mysql_data:
   rabbitmq_data:
 
 networks:
