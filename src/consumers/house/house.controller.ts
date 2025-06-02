@@ -1,36 +1,59 @@
-import { Controller } from '@nestjs/common';
-import { Payload } from '@nestjs/microservices';
+import { Controller, Req } from '@nestjs/common';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { HouseService } from './house.service';
-import { CreateHouseDto } from './dto/create-house.dto';
-import { UpdateHouseDto } from './dto/update-house.dto';
-import { AutoRpcPattern, Filter, IFilter } from 'src/common/decorators';
+import { CreateHouseDto, UpdateHouseDto } from './house.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class HouseController {
   constructor(private readonly houseService: HouseService) {}
 
   @AutoRpcPattern()
-  async create(@Payload() createHouseDto: CreateHouseDto) {
-    return this.houseService.create(createHouseDto);
+  async create(@Payload() data: IPayload<CreateHouseDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.houseService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
   @AutoRpcPattern()
-  async findAll(@Filter() filter: IFilter) {
-    return this.houseService.findAll(filter);
+  @ResourceMember('house')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.houseService.findAll(filter);
+    const count = await this.houseService.count(filter);
+    return { data, count };
   }
 
   @AutoRpcPattern()
-  async findOne(@Payload() data: { id: number }) {
+  @ResourceMember('house')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
     return this.houseService.findOne(data.id);
   }
 
   @AutoRpcPattern()
-  async update(@Payload() updateHouseDto: UpdateHouseDto) {
-    return this.houseService.update(updateHouseDto.id, updateHouseDto);
+  async update(@Payload() data: IPayload<UpdateHouseDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.houseService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
   @AutoRpcPattern()
-  async remove(@Payload() id: number) {
-    return this.houseService.remove(id);
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.houseService.remove(data.id);
   }
 }

@@ -16,7 +16,6 @@ async function main() {
       ownerId: 1,
       description: 'Modern boarding house with excellent facilities',
       totalArea: 500.0,
-      totalRooms: 4,
       status: 'ACTIVE',
       createdBy: systemUserId,
       updatedBy: systemUserId,
@@ -30,7 +29,6 @@ async function main() {
       ownerId: 2,
       description: 'Peaceful boarding house surrounded by gardens',
       totalArea: 350.0,
-      totalRooms: 3,
       status: 'ACTIVE',
       createdBy: systemUserId,
       updatedBy: systemUserId,
@@ -271,6 +269,33 @@ async function main() {
       },
     }),
   ]);
+
+  // Create resource members for houses
+  await Promise.all([
+    prisma.resourceMember.create({
+      data: {
+        resource: 'house',
+        resourceId: house1.id,
+        userId: 1,
+      },
+    }),
+    prisma.resourceMember.create({
+      data: {
+        resource: 'house',
+        resourceId: house1.id,
+        userId: 2,
+      },
+    }),
+    prisma.resourceMember.create({
+      data: {
+        resource: 'house',
+        resourceId: house2.id,
+        userId: 2,
+      },
+    }),
+  ]);
+
+  console.log('✅ Resource members created');
 
   console.log('✅ Images created');
 

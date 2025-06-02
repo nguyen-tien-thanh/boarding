@@ -1,4 +1,5 @@
 import { ExecutionContext, createParamDecorator } from '@nestjs/common';
+import { parseJSON, parseNumber } from '../utils';
 
 export interface IFilter {
   take?: number;
@@ -8,23 +9,6 @@ export interface IFilter {
   orderBy?: Record<string, 'asc' | 'desc' | any>;
   select?: Record<string, boolean | any>;
 }
-
-const parseJSON = (value: any): any => {
-  if (typeof value === 'string') {
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
-    }
-  }
-  return value;
-};
-
-const parseNumber = (value: string | number, defaultValue = 0): number => {
-  if (typeof value === 'number') return value;
-  const num = Number(value);
-  return !isNaN(num) ? num : defaultValue;
-};
 
 export const Filter = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): IFilter => {

@@ -1,4 +1,16 @@
 -- CreateTable
+CREATE TABLE `resourceMembers` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `resource` VARCHAR(255) NOT NULL,
+    `resourceId` INTEGER NULL,
+    `userId` INTEGER NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `houses` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(255) NOT NULL,
@@ -6,12 +18,11 @@ CREATE TABLE `houses` (
     `ownerId` INTEGER NOT NULL,
     `description` TEXT NULL,
     `totalArea` DECIMAL(10, 2) NOT NULL,
-    `totalRooms` INTEGER NULL DEFAULT 0,
     `status` ENUM('ACTIVE', 'INACTIVE', 'MAINTENANCE') NOT NULL DEFAULT 'ACTIVE',
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -29,7 +40,7 @@ CREATE TABLE `rooms` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -45,7 +56,7 @@ CREATE TABLE `images` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     INDEX `images_entityType_entityId_idx`(`entityType`, `entityId`),
     PRIMARY KEY (`id`)
@@ -59,7 +70,7 @@ CREATE TABLE `assetCategories` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -75,7 +86,7 @@ CREATE TABLE `assets` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -110,7 +121,7 @@ CREATE TABLE `tenantContracts` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -125,7 +136,7 @@ CREATE TABLE `qrCodes` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
     `expiresAt` DATETIME(3) NULL,
 
     UNIQUE INDEX `qrCodes_houseId_key`(`houseId`),
@@ -148,7 +159,7 @@ CREATE TABLE `maintenances` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
     `createdBy` INTEGER NOT NULL,
-    `updatedBy` INTEGER NOT NULL,
+    `updatedBy` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

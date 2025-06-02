@@ -1,132 +1,95 @@
 import {
-  Injectable,
-  NotFoundException,
   ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.config';
-import { CreateHouseDto } from './dto/create-house.dto';
-import { UpdateHouseDto } from './dto/update-house.dto';
-import { House } from './entities/house.entity';
+import { CreateHouseDto, UpdateHouseDto } from './house.dto';
 import { IFilter } from 'src/common/decorators';
+import { cleanObject } from 'src/common/utils/object.utils';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class HouseService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createHouseDto: CreateHouseDto): Promise<House> {
+  async count(filter: IFilter) {
+    const where = filter.where || {};
+    const ids =
+      where.id?.in ||
+      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
+      [];
+    return this.prisma.house.count({ where: { id: { in: ids } } });
+  }
+
+  async create(createHouseDto: CreateHouseDto) {
     try {
       const house = await this.prisma.house.create({
+        data: createHouseDto,
+        include: { rooms: true, qrCode: true },
+      });
+
+      await this.prisma.resourceMember.create({
         data: {
-          name: createHouseDto.name,
-          address: createHouseDto.address,
-          ownerId: createHouseDto.ownerId,
-          description: createHouseDto.description,
-          totalArea: createHouseDto.totalArea,
-          totalRooms: createHouseDto.totalRooms,
-          createdBy: createHouseDto.createdBy,
-          updatedBy: createHouseDto.createdBy,
-        },
-        include: {
-          rooms: true,
-          qrCode: true,
-          images: true,
+          resource: 'house',
+          resourceId: house.id,
+          userId: createHouseDto.createdBy,
         },
       });
 
       return house;
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'House with this information already exists',
-        );
-      }
-      throw error;
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
     }
   }
 
-  async findAll(filter: IFilter): Promise<{ data: House[]; count: number }> {
-    const count = await this.prisma.house.count({ where: filter.where });
-    const houses = await this.prisma.house.findMany({
-      orderBy: { createdAt: 'desc', ...filter.orderBy },
+  async findAll(filter: IFilter) {
+    return await this.prisma.house.findMany({
+      orderBy: { updatedAt: 'desc', ...filter.orderBy },
       ...filter,
     });
-
-    return { data: houses, count };
   }
 
-  async findOne(id: number): Promise<House> {
+  async findOne(id: number) {
     const house = await this.prisma.house.findUnique({
       where: { id },
       include: {
-        rooms: {
-          include: {
-            images: true,
-            roomAssets: {
-              include: {
-                asset: true,
-              },
-            },
-          },
-        },
+        rooms: { include: { roomAssets: { include: { asset: true } } } },
         qrCode: true,
-        images: true,
       },
     });
 
-    if (!house) {
-      throw new NotFoundException(`House with ID ${id} not found`);
-    }
+    if (!house) throw new RpcException(new NotFoundException());
 
     return house;
   }
 
-  async update(id: number, updateHouseDto: UpdateHouseDto): Promise<House> {
+  async update(id: number, updateHouseDto: UpdateHouseDto) {
     await this.findOne(id);
 
     try {
       const updatedHouse = await this.prisma.house.update({
         where: { id },
-        data: {
-          ...(updateHouseDto.name && { name: updateHouseDto.name }),
-          ...(updateHouseDto.address && { address: updateHouseDto.address }),
-          ...(updateHouseDto.ownerId && { ownerId: updateHouseDto.ownerId }),
-          ...(updateHouseDto.description !== undefined && {
-            description: updateHouseDto.description,
-          }),
-          ...(updateHouseDto.totalArea && {
-            totalArea: updateHouseDto.totalArea,
-          }),
-          ...(updateHouseDto.totalRooms && {
-            totalRooms: updateHouseDto.totalRooms,
-          }),
-          ...(updateHouseDto.status && { status: updateHouseDto.status }),
+        data: cleanObject({
+          ...updateHouseDto,
           updatedBy: updateHouseDto.updatedBy,
-        },
-        include: {
-          rooms: true,
-          qrCode: true,
-          images: true,
-        },
+        }),
+        include: { rooms: true, qrCode: true },
       });
 
       return updatedHouse;
     } catch (error) {
-      if (error.code === 'P2002') {
-        throw new ConflictException(
-          'House with this information already exists',
-        );
-      }
-      throw error;
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
     }
   }
 
-  async remove(id: number): Promise<{ message: string }> {
+  async remove(id: number) {
     await this.findOne(id);
-
-    await this.prisma.house.delete({
-      where: { id },
-    });
-
-    return { message: `House with ID ${id} has been successfully deleted` };
+    return await this.prisma.house.delete({ where: { id } });
   }
 }

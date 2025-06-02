@@ -58,6 +58,17 @@ enum MaintenanceStatus {
   CANCELLED
 }
 
+model ResourceMember {
+  id          Int       @id @default(autoincrement())
+  resource    String    @db.VarChar(255)
+  resourceId  Int?
+  userId      Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("resourceMembers")
+}
+
 model House {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(255)
@@ -65,12 +76,11 @@ model House {
   ownerId     Int
   description String?     @db.Text
   totalArea   Decimal     @db.Decimal(10, 2)
-  totalRooms  Int?        @default(0)
   status      HouseStatus @default(ACTIVE)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   createdBy   Int
-  updatedBy   Int
+  updatedBy   Int?
 
   // Relations
   rooms     Room[]
@@ -91,7 +101,7 @@ model Room {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   createdBy   Int
-  updatedBy   Int
+  updatedBy   Int?
 
   // Relations
   house           House             @relation(fields: [houseId], references: [id], onDelete: Cascade)
@@ -112,7 +122,7 @@ model Image {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   createdBy  Int
-  updatedBy  Int
+  updatedBy  Int?
 
   @@map("images")
   @@index([entityType, entityId])
@@ -125,7 +135,7 @@ model AssetCategory {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   createdBy   Int
-  updatedBy   Int
+  updatedBy   Int?
 
   // Relations
   assets Asset[]
@@ -143,7 +153,7 @@ model Asset {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   createdBy   Int
-  updatedBy   Int
+  updatedBy   Int?
 
   // Relations
   category   AssetCategory @relation(fields: [categoryId], references: [id])
@@ -184,7 +194,7 @@ model TenantContract {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   createdBy   Int
-  updatedBy   Int
+  updatedBy   Int?
 
   // Relations
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
@@ -201,7 +211,7 @@ model QRCode {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   createdBy Int
-  updatedBy Int
+  updatedBy Int?
   expiresAt DateTime?
 
   // Relations
@@ -225,7 +235,7 @@ model Maintenance {
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   createdBy   Int
-  updatedBy   Int
+  updatedBy   Int?
 
   // Relations
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)

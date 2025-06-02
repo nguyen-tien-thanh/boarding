@@ -7,8 +7,9 @@ import {
   IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PartialType } from '@nestjs/mapped-types';
 
-export class CreateHouseDto {
+export class HouseDto {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -17,9 +18,10 @@ export class CreateHouseDto {
   @IsNotEmpty()
   address: string;
 
-  @IsString()
-  @IsNotEmpty()
-  ownerId: string;
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  ownerId: number;
 
   @IsOptional()
   @IsString()
@@ -29,14 +31,18 @@ export class CreateHouseDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   totalArea: number;
+}
 
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  totalRooms: number;
-
+export class CreateHouseDto extends HouseDto {
   @Type(() => Number)
   @IsInt()
   @IsPositive()
   createdBy: number;
+}
+
+export class UpdateHouseDto extends PartialType(HouseDto) {
+  @Type(() => Number)
+  @IsInt()
+  @IsPositive()
+  updatedBy: number;
 }
