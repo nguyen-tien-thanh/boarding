@@ -1,35 +1,57 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { TenantContractService } from './tenant-contract.service';
-import { CreateTenantContractDto } from './dto/create-tenant-contract.dto';
-import { UpdateTenantContractDto } from './dto/update-tenant-contract.dto';
+import {
+  CreateTenantContractDto,
+  UpdateTenantContractDto,
+} from './tenant-contract.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class TenantContractController {
   constructor(private readonly tenantContractService: TenantContractService) {}
 
-  @MessagePattern('createTenantContract')
-  create(@Payload() createTenantContractDto: CreateTenantContractDto) {
-    return this.tenantContractService.create(createTenantContractDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateTenantContractDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.tenantContractService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllTenantContract')
-  findAll() {
+  @AutoRpcPattern()
+  @ResourceMember('tenantContract')
+  async findAll() {
     return this.tenantContractService.findAll();
   }
 
-  @MessagePattern('findOneTenantContract')
-  findOne(@Payload() id: number) {
-    return this.tenantContractService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('tenantContract')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.tenantContractService.findOne(data.id);
   }
 
-  @MessagePattern('updateTenantContract')
-  update(@Payload() updateTenantContractDto: UpdateTenantContractDto) {
-    return this.tenantContractService.update(updateTenantContractDto.id, updateTenantContractDto);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateTenantContractDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.tenantContractService.update(data.id, data.payload);
   }
 
-  @MessagePattern('removeTenantContract')
-  remove(@Payload() id: number) {
-    return this.tenantContractService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.tenantContractService.remove(data.id);
   }
 }

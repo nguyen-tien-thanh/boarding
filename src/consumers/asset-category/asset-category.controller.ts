@@ -1,35 +1,62 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { AssetCategoryService } from './asset-category.service';
-import { CreateAssetCategoryDto } from './dto/create-asset-category.dto';
-import { UpdateAssetCategoryDto } from './dto/update-asset-category.dto';
+import {
+  CreateAssetCategoryDto,
+  UpdateAssetCategoryDto,
+} from './asset-category.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class AssetCategoryController {
   constructor(private readonly assetCategoryService: AssetCategoryService) {}
 
-  @MessagePattern('createAssetCategory')
-  create(@Payload() createAssetCategoryDto: CreateAssetCategoryDto) {
-    return this.assetCategoryService.create(createAssetCategoryDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateAssetCategoryDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.assetCategoryService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllAssetCategory')
-  findAll() {
-    return this.assetCategoryService.findAll();
+  @AutoRpcPattern()
+  @ResourceMember('assetCategory')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.assetCategoryService.findAll(filter);
+    const count = await this.assetCategoryService.count(filter);
+    return { data, count };
   }
 
-  @MessagePattern('findOneAssetCategory')
-  findOne(@Payload() id: number) {
-    return this.assetCategoryService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('assetCategory')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.assetCategoryService.findOne(data.id);
   }
 
-  @MessagePattern('updateAssetCategory')
-  update(@Payload() updateAssetCategoryDto: UpdateAssetCategoryDto) {
-    return this.assetCategoryService.update(updateAssetCategoryDto.id, updateAssetCategoryDto);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateAssetCategoryDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.assetCategoryService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
-  @MessagePattern('removeAssetCategory')
-  remove(@Payload() id: number) {
-    return this.assetCategoryService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.assetCategoryService.remove(data.id);
   }
 }

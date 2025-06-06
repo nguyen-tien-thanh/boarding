@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './config/prisma.config';
 import { AssetModule } from './consumers/asset/asset.module';
-import { QrCodeModule } from './consumers/qr-code/qr-code.module';
+import { QRCodeModule } from './consumers/qr-code/qr-code.module';
 import { MaintenanceModule } from './consumers/maintenance/maintenance.module';
 import { HouseModule } from './consumers/house/house.module';
 import { RoomModule } from './consumers/room/room.module';
@@ -23,7 +23,7 @@ import rabbitmqConfig from './config/rabbitmq.config';
     HouseModule,
     ImageModule,
     MaintenanceModule,
-    QrCodeModule,
+    QRCodeModule,
     RoomAssetModule,
     RoomModule,
     TenantContractModule,

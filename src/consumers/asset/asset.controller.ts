@@ -1,35 +1,59 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { AssetService } from './asset.service';
-import { CreateAssetDto } from './dto/create-asset.dto';
-import { UpdateAssetDto } from './dto/update-asset.dto';
+import { CreateAssetDto, UpdateAssetDto } from './asset.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class AssetController {
   constructor(private readonly assetService: AssetService) {}
 
-  @MessagePattern('createAsset')
-  create(@Payload() createAssetDto: CreateAssetDto) {
-    return this.assetService.create(createAssetDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateAssetDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.assetService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllAsset')
-  findAll() {
-    return this.assetService.findAll();
+  @AutoRpcPattern()
+  @ResourceMember('asset')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.assetService.findAll(filter);
+    const count = await this.assetService.count(filter);
+    return { data, count };
   }
 
-  @MessagePattern('findOneAsset')
-  findOne(@Payload() id: number) {
-    return this.assetService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('asset')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.assetService.findOne(data.id);
   }
 
-  @MessagePattern('updateAsset')
-  update(@Payload() updateAssetDto: UpdateAssetDto) {
-    return this.assetService.update(updateAssetDto.id, updateAssetDto);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateAssetDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.assetService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
-  @MessagePattern('removeAsset')
-  remove(@Payload() id: number) {
-    return this.assetService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.assetService.remove(data.id);
   }
 }

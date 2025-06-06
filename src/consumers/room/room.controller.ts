@@ -1,35 +1,59 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { RoomService } from './room.service';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateRoomDto } from './dto/update-room.dto';
+import { CreateRoomDto, UpdateRoomDto } from './room.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
 
-  @MessagePattern('createRoom')
-  create(@Payload() createRoomDto: CreateRoomDto) {
-    return this.roomService.create(createRoomDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateRoomDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.roomService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllRoom')
-  findAll() {
-    return this.roomService.findAll();
+  @AutoRpcPattern()
+  @ResourceMember('room')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.roomService.findAll(filter);
+    const count = await this.roomService.count(filter);
+    return { data, count };
   }
 
-  @MessagePattern('findOneRoom')
-  findOne(@Payload() id: number) {
-    return this.roomService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('room')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.roomService.findOne(data.id);
   }
 
-  @MessagePattern('updateRoom')
-  update(@Payload() updateRoomDto: UpdateRoomDto) {
-    return this.roomService.update(updateRoomDto.id, updateRoomDto);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateRoomDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.roomService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
-  @MessagePattern('removeRoom')
-  remove(@Payload() id: number) {
-    return this.roomService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.roomService.remove(data.id);
   }
 }

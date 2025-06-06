@@ -1,26 +1,104 @@
-import { Injectable } from '@nestjs/common';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { UpdateRoomDto } from './dto/update-room.dto';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../config/prisma.config';
+import { CreateRoomDto, UpdateRoomDto } from './room.dto';
+import { IFilter } from 'src/common/decorators';
+import { cleanObject } from 'src/common/utils/object.utils';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class RoomService {
-  create(createRoomDto: CreateRoomDto) {
-    return 'This action adds a new room';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async count(filter: IFilter) {
+    const where = filter.where || {};
+    const ids =
+      where.id?.in ||
+      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
+      [];
+    return this.prisma.room.count({ where: { id: { in: ids } } });
   }
 
-  findAll() {
-    return `This action returns all room`;
+  async create(createRoomDto: CreateRoomDto) {
+    try {
+      const room = await this.prisma.room.create({
+        data: createRoomDto,
+        include: {
+          roomAssets: { include: { asset: true } },
+          tenantContracts: true,
+          maintenances: true,
+        },
+      });
+
+      await this.prisma.resourceMember.create({
+        data: {
+          resource: 'room',
+          resourceId: room.id,
+          userId: createRoomDto.createdBy,
+        },
+      });
+
+      return room;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} room`;
+  async findAll(filter: IFilter) {
+    return await this.prisma.room.findMany({
+      orderBy: { updatedAt: 'desc', ...filter.orderBy },
+      ...filter,
+    });
   }
 
-  update(id: number, updateRoomDto: UpdateRoomDto) {
-    return `This action updates a #${id} room`;
+  async findOne(id: number) {
+    const room = await this.prisma.room.findUnique({
+      where: { id },
+      include: {
+        roomAssets: { include: { asset: true } },
+        tenantContracts: true,
+        maintenances: true,
+      },
+    });
+
+    if (!room) throw new RpcException(new NotFoundException());
+
+    return room;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} room`;
+  async update(id: number, updateRoomDto: UpdateRoomDto) {
+    await this.findOne(id);
+
+    try {
+      const updatedRoom = await this.prisma.room.update({
+        where: { id },
+        data: cleanObject({
+          ...updateRoomDto,
+          updatedBy: updateRoomDto.updatedBy,
+        }),
+        include: {
+          roomAssets: { include: { asset: true } },
+          tenantContracts: true,
+          maintenances: true,
+        },
+      });
+
+      return updatedRoom;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
+  }
+
+  async remove(id: number) {
+    await this.findOne(id);
+    return await this.prisma.room.delete({ where: { id } });
   }
 }

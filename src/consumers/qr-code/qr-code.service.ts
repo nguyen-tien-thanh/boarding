@@ -1,26 +1,82 @@
-import { Injectable } from '@nestjs/common';
-import { CreateQrCodeDto } from './dto/create-qr-code.dto';
-import { UpdateQrCodeDto } from './dto/update-qr-code.dto';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../config/prisma.config';
+import { CreateQRCodeDto, UpdateQRCodeDto } from './qr-code.dto';
+import { cleanObject } from 'src/common/utils/object.utils';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
-export class QrCodeService {
-  create(createQrCodeDto: CreateQrCodeDto) {
-    return 'This action adds a new qrCode';
+export class QRCodeService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createQRCodeDto: CreateQRCodeDto) {
+    try {
+      const qrCode = await this.prisma.qRCode.create({
+        data: createQRCodeDto,
+        include: { house: true },
+      });
+
+      await this.prisma.resourceMember.create({
+        data: {
+          resource: 'qrCode',
+          resourceId: qrCode.id,
+          userId: createQRCodeDto.createdBy,
+        },
+      });
+
+      return qrCode;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  findAll() {
-    return `This action returns all qrCode`;
+  async findAll() {
+    return await this.prisma.qRCode.findMany({
+      orderBy: { updatedAt: 'desc' },
+      include: { house: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} qrCode`;
+  async findOne(id: number) {
+    const qrCode = await this.prisma.qRCode.findUnique({
+      where: { id },
+      include: { house: true },
+    });
+
+    if (!qrCode) throw new RpcException(new NotFoundException());
+
+    return qrCode;
   }
 
-  update(id: number, updateQrCodeDto: UpdateQrCodeDto) {
-    return `This action updates a #${id} qrCode`;
+  async update(id: number, updateQRCodeDto: UpdateQRCodeDto) {
+    await this.findOne(id);
+
+    try {
+      const updatedQRCode = await this.prisma.qRCode.update({
+        where: { id },
+        data: cleanObject({
+          ...updateQRCodeDto,
+          updatedBy: updateQRCodeDto.updatedBy,
+        }),
+        include: { house: true },
+      });
+
+      return updatedQRCode;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} qrCode`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return await this.prisma.qRCode.delete({ where: { id } });
   }
 }

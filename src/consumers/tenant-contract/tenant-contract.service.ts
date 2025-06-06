@@ -1,26 +1,85 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTenantContractDto } from './dto/create-tenant-contract.dto';
-import { UpdateTenantContractDto } from './dto/update-tenant-contract.dto';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../config/prisma.config';
+import {
+  CreateTenantContractDto,
+  UpdateTenantContractDto,
+} from './tenant-contract.dto';
+import { cleanObject } from 'src/common/utils/object.utils';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class TenantContractService {
-  create(createTenantContractDto: CreateTenantContractDto) {
-    return 'This action adds a new tenantContract';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(createTenantContractDto: CreateTenantContractDto) {
+    try {
+      const tenantContract = await this.prisma.tenantContract.create({
+        data: createTenantContractDto,
+        include: { room: true },
+      });
+
+      await this.prisma.resourceMember.create({
+        data: {
+          resource: 'tenantContract',
+          resourceId: tenantContract.id,
+          userId: createTenantContractDto.createdBy,
+        },
+      });
+
+      return tenantContract;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  findAll() {
-    return `This action returns all tenantContract`;
+  async findAll() {
+    return await this.prisma.tenantContract.findMany({
+      orderBy: { updatedAt: 'desc' },
+      include: { room: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} tenantContract`;
+  async findOne(id: number) {
+    const tenantContract = await this.prisma.tenantContract.findUnique({
+      where: { id },
+      include: { room: true },
+    });
+
+    if (!tenantContract) throw new RpcException(new NotFoundException());
+
+    return tenantContract;
   }
 
-  update(id: number, updateTenantContractDto: UpdateTenantContractDto) {
-    return `This action updates a #${id} tenantContract`;
+  async update(id: number, updateTenantContractDto: UpdateTenantContractDto) {
+    await this.findOne(id);
+
+    try {
+      const updatedTenantContract = await this.prisma.tenantContract.update({
+        where: { id },
+        data: cleanObject({
+          ...updateTenantContractDto,
+          updatedBy: updateTenantContractDto.updatedBy,
+        }),
+        include: { room: true },
+      });
+
+      return updatedTenantContract;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} tenantContract`;
+  async remove(id: number) {
+    await this.findOne(id);
+    return await this.prisma.tenantContract.delete({ where: { id } });
   }
 }
