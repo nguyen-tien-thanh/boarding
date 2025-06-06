@@ -3,7 +3,9 @@ import {
   ExecutionContext,
   Injectable,
   ForbiddenException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import { PrismaService } from 'src/config/prisma.config';
 
 export function ResourceMemberGuard(resource: string) {
@@ -14,9 +16,10 @@ export function ResourceMemberGuard(resource: string) {
     async canActivate(context: ExecutionContext): Promise<boolean> {
       const data = context.switchToRpc().getData();
       const user = data.user;
+      const id = data.id;
 
-      if (!user) throw new ForbiddenException('User not authenticated');
-      if (user.username === 'admin') return true; // TODO: Change this hardcode
+      if (!user) throw new RpcException(new UnauthorizedException());
+      if (user.username === 'admin') return true;
 
       const resourceMembers = await this.prisma.resourceMember.findMany({
         where: { userId: user.id, resource },
@@ -27,8 +30,8 @@ export function ResourceMemberGuard(resource: string) {
         .map((rm) => rm.resourceId)
         .filter((id): id is number => id !== null);
 
-      if (allowedResourceIds.length === 0) {
-        throw new ForbiddenException('No access to any resource');
+      if (!allowedResourceIds.includes(id)) {
+        throw new RpcException(new ForbiddenException());
       }
 
       data.allowedResourceIds = allowedResourceIds;
