@@ -11,10 +11,20 @@ import {
 } from './tenant-contract.dto';
 import { cleanObject } from 'src/common/utils/object.utils';
 import { RpcException } from '@nestjs/microservices';
+import { IFilter } from 'src/common/decorators';
 
 @Injectable()
 export class TenantContractService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async count(filter: IFilter) {
+    const where = filter.where || {};
+    const ids =
+      where.id?.in ||
+      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
+      [];
+    return this.prisma.tenantContract.count({ where: { id: { in: ids } } });
+  }
 
   async create(createTenantContractDto: CreateTenantContractDto) {
     try {
@@ -39,8 +49,11 @@ export class TenantContractService {
     }
   }
 
-  async findAll() {
+  async findAll(filter: IFilter) {
     return await this.prisma.tenantContract.findMany({
+      where: filter?.where,
+      skip: filter?.skip,
+      take: filter?.take,
       orderBy: { updatedAt: 'desc' },
       include: { room: true },
     });

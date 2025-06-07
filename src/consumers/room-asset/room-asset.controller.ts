@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { BadRequestException, Controller } from '@nestjs/common';
 import { Payload, RpcException } from '@nestjs/microservices';
 import { RoomAssetService } from './room-asset.service';
 import { CreateRoomAssetDto, UpdateRoomAssetDto } from './room-asset.dto';
@@ -17,7 +17,7 @@ export class RoomAssetController {
   @AutoRpcPattern()
   async create(@Payload() data: IPayload<CreateRoomAssetDto>) {
     if (!data.payload || !data.user) {
-      throw new RpcException('Invalid payload or user data');
+      throw new RpcException(new BadRequestException());
     }
     return this.roomAssetService.create({
       ...data.payload,
@@ -36,14 +36,14 @@ export class RoomAssetController {
   @AutoRpcPattern()
   @ResourceMember('roomAsset')
   async findOne(@Payload() data: IPayload) {
-    if (!data.id) throw new RpcException('Invalid payload or user data');
+    if (!data.id) throw new RpcException(new BadRequestException());
     return this.roomAssetService.findOne(data.id);
   }
 
   @AutoRpcPattern()
   async update(@Payload() data: IPayload<UpdateRoomAssetDto>) {
     if (!data.id || !data.payload || !data.user) {
-      throw new RpcException('Invalid payload or user data');
+      throw new RpcException(new BadRequestException());
     }
     return this.roomAssetService.update(data.id, {
       ...data.payload,
@@ -53,7 +53,7 @@ export class RoomAssetController {
 
   @AutoRpcPattern()
   async remove(@Payload() data: IPayload) {
-    if (!data.id) throw new RpcException('Invalid payload or user data');
+    if (!data.id) throw new RpcException(new BadRequestException());
     return this.roomAssetService.remove(data.id);
   }
 }

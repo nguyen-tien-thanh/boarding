@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { BadRequestException, Controller } from '@nestjs/common';
 import { Payload, RpcException } from '@nestjs/microservices';
 import { AssetCategoryService } from './asset-category.service';
 import {
@@ -20,7 +20,7 @@ export class AssetCategoryController {
   @AutoRpcPattern()
   async create(@Payload() data: IPayload<CreateAssetCategoryDto>) {
     if (!data.payload || !data.user) {
-      throw new RpcException('Invalid payload or user data');
+      throw new RpcException(new BadRequestException());
     }
     return this.assetCategoryService.create({
       ...data.payload,
@@ -39,14 +39,14 @@ export class AssetCategoryController {
   @AutoRpcPattern()
   @ResourceMember('assetCategory')
   async findOne(@Payload() data: IPayload) {
-    if (!data.id) throw new RpcException('Invalid payload or user data');
+    if (!data.id) throw new RpcException(new BadRequestException());
     return this.assetCategoryService.findOne(data.id);
   }
 
   @AutoRpcPattern()
   async update(@Payload() data: IPayload<UpdateAssetCategoryDto>) {
     if (!data.id || !data.payload || !data.user) {
-      throw new RpcException('Invalid payload or user data');
+      throw new RpcException(new BadRequestException());
     }
     return this.assetCategoryService.update(data.id, {
       ...data.payload,
@@ -56,7 +56,7 @@ export class AssetCategoryController {
 
   @AutoRpcPattern()
   async remove(@Payload() data: IPayload) {
-    if (!data.id) throw new RpcException('Invalid payload or user data');
+    if (!data.id) throw new RpcException(new BadRequestException());
     return this.assetCategoryService.remove(data.id);
   }
 }

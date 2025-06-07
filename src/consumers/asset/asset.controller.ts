@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { BadRequestException, Controller } from '@nestjs/common';
 import { Payload, RpcException } from '@nestjs/microservices';
 import { AssetService } from './asset.service';
 import { CreateAssetDto, UpdateAssetDto } from './asset.dto';
@@ -17,7 +17,7 @@ export class AssetController {
   @AutoRpcPattern()
   async create(@Payload() data: IPayload<CreateAssetDto>) {
     if (!data.payload || !data.user) {
-      throw new RpcException('Invalid payload or user data');
+      throw new RpcException(new BadRequestException());
     }
     return this.assetService.create({
       ...data.payload,
@@ -36,14 +36,14 @@ export class AssetController {
   @AutoRpcPattern()
   @ResourceMember('asset')
   async findOne(@Payload() data: IPayload) {
-    if (!data.id) throw new RpcException('Invalid payload or user data');
+    if (!data.id) throw new RpcException(new BadRequestException());
     return this.assetService.findOne(data.id);
   }
 
   @AutoRpcPattern()
   async update(@Payload() data: IPayload<UpdateAssetDto>) {
     if (!data.id || !data.payload || !data.user) {
-      throw new RpcException('Invalid payload or user data');
+      throw new RpcException(new BadRequestException());
     }
     return this.assetService.update(data.id, {
       ...data.payload,
@@ -53,7 +53,7 @@ export class AssetController {
 
   @AutoRpcPattern()
   async remove(@Payload() data: IPayload) {
-    if (!data.id) throw new RpcException('Invalid payload or user data');
+    if (!data.id) throw new RpcException(new BadRequestException());
     return this.assetService.remove(data.id);
   }
 }
