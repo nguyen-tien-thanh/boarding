@@ -1,34 +1,59 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { QRCodeService } from './qr-code.service';
 import { CreateQRCodeDto, UpdateQRCodeDto } from './qr-code.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class QRCodeController {
   constructor(private readonly qrCodeService: QRCodeService) {}
 
-  @MessagePattern('createQRCode')
-  create(@Payload() createQRCodeDto: CreateQRCodeDto) {
-    return this.qrCodeService.create(createQRCodeDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateQRCodeDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.qrCodeService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllQRCode')
-  findAll() {
-    return this.qrCodeService.findAll();
+  @AutoRpcPattern()
+  @ResourceMember('qrCode')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.qrCodeService.findAll(filter);
+    const count = await this.qrCodeService.count(filter);
+    return { data, count };
   }
 
-  @MessagePattern('findOneQRCode')
-  findOne(@Payload() id: number) {
-    return this.qrCodeService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('qrCode')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.qrCodeService.findOne(data.id);
   }
 
-  @MessagePattern('updateQRCode')
-  update(@Payload() payload: { id: number; data: UpdateQRCodeDto }) {
-    return this.qrCodeService.update(payload.id, payload.data);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateQRCodeDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.qrCodeService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
-  @MessagePattern('removeQRCode')
-  remove(@Payload() id: number) {
-    return this.qrCodeService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.qrCodeService.remove(data.id);
   }
 }

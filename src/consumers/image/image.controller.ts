@@ -1,35 +1,59 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { ImageService } from './image.service';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
+import { CreateImageDto, UpdateImageDto } from './image.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class ImageController {
   constructor(private readonly imageService: ImageService) {}
 
-  @MessagePattern('createImage')
-  create(@Payload() createImageDto: CreateImageDto) {
-    return this.imageService.create(createImageDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateImageDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.imageService.create({
+      ...data.payload,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllImage')
-  findAll() {
-    return this.imageService.findAll();
+  @AutoRpcPattern()
+  @ResourceMember('image')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.imageService.findAll(filter);
+    const count = await this.imageService.count(filter);
+    return { data, count };
   }
 
-  @MessagePattern('findOneImage')
-  findOne(@Payload() id: number) {
-    return this.imageService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('image')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.imageService.findOne(data.id);
   }
 
-  @MessagePattern('updateImage')
-  update(@Payload() updateImageDto: UpdateImageDto) {
-    return this.imageService.update(updateImageDto.id, updateImageDto);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateImageDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.imageService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
-  @MessagePattern('removeImage')
-  remove(@Payload() id: number) {
-    return this.imageService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.imageService.remove(data.id);
   }
 }

@@ -9,7 +9,6 @@ import {
   IsDate,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PartialType } from '@nestjs/mapped-types';
 import { MaintenancePriority, MaintenanceStatus } from '@prisma/client';
 
 export class MaintenanceDto {
@@ -55,16 +54,46 @@ export class MaintenanceDto {
   completedAt?: Date;
 }
 
-export class CreateMaintenanceDto extends MaintenanceDto {
+export class CreateMaintenanceDto {
+  @IsString()
+  title: string;
+
+  @IsString()
+  description: string;
+
+  @IsDate()
+  scheduledDate: Date;
+
+  @IsNumber()
+  roomId: number;
+
+  @IsNumber()
+  reportedBy: number;
+
   @Type(() => Number)
   @IsInt()
   @IsPositive()
   createdBy: number;
 }
 
-export class UpdateMaintenanceDto extends PartialType(MaintenanceDto) {
-  @Type(() => Number)
-  @IsInt()
-  @IsPositive()
-  updatedBy: number;
+export class UpdateMaintenanceDto {
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsDate()
+  @IsOptional()
+  scheduledDate?: Date;
+
+  @IsNumber()
+  @IsOptional()
+  roomId?: number;
+
+  @IsNumber()
+  @IsOptional()
+  updatedBy?: number;
 }

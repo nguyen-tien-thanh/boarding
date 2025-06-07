@@ -8,6 +8,7 @@ import { PrismaService } from '../../config/prisma.config';
 import { CreateQRCodeDto, UpdateQRCodeDto } from './qr-code.dto';
 import { cleanObject } from 'src/common/utils/object.utils';
 import { RpcException } from '@nestjs/microservices';
+import { IFilter } from 'src/common/decorators';
 
 @Injectable()
 export class QRCodeService {
@@ -36,10 +37,19 @@ export class QRCodeService {
     }
   }
 
-  async findAll() {
+  async findAll(filter?: IFilter) {
     return await this.prisma.qRCode.findMany({
+      where: filter?.where,
       orderBy: { updatedAt: 'desc' },
       include: { house: true },
+      skip: filter?.skip,
+      take: filter?.take,
+    });
+  }
+
+  async count(filter?: IFilter) {
+    return await this.prisma.qRCode.count({
+      where: filter?.where,
     });
   }
 

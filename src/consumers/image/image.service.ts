@@ -1,26 +1,87 @@
-import { Injectable } from '@nestjs/common';
-import { CreateImageDto } from './dto/create-image.dto';
-import { UpdateImageDto } from './dto/update-image.dto';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../config/prisma.config';
+import { CreateImageDto, UpdateImageDto } from './image.dto';
+import { IFilter } from 'src/common/decorators';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ImageService {
-  create(createImageDto: CreateImageDto) {
-    return 'This action adds a new image';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async count(filter: IFilter) {
+    const where = filter.where || {};
+    const ids =
+      where.id?.in ||
+      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
+      [];
+    return this.prisma.image.count({ where: { id: { in: ids } } });
   }
 
-  findAll() {
-    return `This action returns all image`;
+  async create(createImageDto: CreateImageDto) {
+    try {
+      const image = await this.prisma.image.create({
+        data: createImageDto,
+      });
+
+      await this.prisma.resourceMember.create({
+        data: {
+          resource: 'image',
+          resourceId: image.id,
+          userId: createImageDto.createdBy,
+        },
+      });
+
+      return image;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} image`;
+  async findAll(filter: IFilter) {
+    return await this.prisma.image.findMany({
+      where: filter?.where,
+      skip: filter?.skip,
+      take: filter?.take,
+    });
   }
 
-  update(id: number, updateImageDto: UpdateImageDto) {
-    return `This action updates a #${id} image`;
+  async findOne(id: number) {
+    const image = await this.prisma.image.findUnique({
+      where: { id },
+    });
+    if (!image) throw new RpcException(new NotFoundException());
+    return image;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} image`;
+  async update(id: number, updateImageDto: UpdateImageDto) {
+    try {
+      return await this.prisma.image.update({
+        where: { id },
+        data: updateImageDto,
+      });
+    } catch (error) {
+      if (error.code === 'P2025')
+        throw new RpcException(new NotFoundException());
+      throw new RpcException(new InternalServerErrorException());
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      return await this.prisma.image.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error.code === 'P2025')
+        throw new RpcException(new NotFoundException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 }

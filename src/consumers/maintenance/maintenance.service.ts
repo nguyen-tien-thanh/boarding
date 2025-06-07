@@ -1,26 +1,87 @@
-import { Injectable } from '@nestjs/common';
-import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
-import { UpdateMaintenanceDto } from './dto/update-maintenance.dto';
+import {
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../config/prisma.config';
+import { CreateMaintenanceDto, UpdateMaintenanceDto } from './maintenance.dto';
+import { IFilter } from 'src/common/decorators';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class MaintenanceService {
-  create(createMaintenanceDto: CreateMaintenanceDto) {
-    return 'This action adds a new maintenance';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async count(filter: IFilter) {
+    const where = filter.where || {};
+    const ids =
+      where.id?.in ||
+      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
+      [];
+    return this.prisma.maintenance.count({ where: { id: { in: ids } } });
   }
 
-  findAll() {
-    return `This action returns all maintenance`;
+  async create(createMaintenanceDto: CreateMaintenanceDto) {
+    try {
+      const maintenance = await this.prisma.maintenance.create({
+        data: createMaintenanceDto,
+      });
+
+      await this.prisma.resourceMember.create({
+        data: {
+          resource: 'maintenance',
+          resourceId: maintenance.id,
+          userId: createMaintenanceDto.createdBy,
+        },
+      });
+
+      return maintenance;
+    } catch (error) {
+      if (error.code === 'P2002')
+        throw new RpcException(new ConflictException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} maintenance`;
+  async findAll(filter: IFilter) {
+    return await this.prisma.maintenance.findMany({
+      where: filter?.where,
+      skip: filter?.skip,
+      take: filter?.take,
+    });
   }
 
-  update(id: number, updateMaintenanceDto: UpdateMaintenanceDto) {
-    return `This action updates a #${id} maintenance`;
+  async findOne(id: number) {
+    const maintenance = await this.prisma.maintenance.findUnique({
+      where: { id },
+    });
+    if (!maintenance) throw new RpcException(new NotFoundException());
+    return maintenance;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} maintenance`;
+  async update(id: number, updateMaintenanceDto: UpdateMaintenanceDto) {
+    try {
+      return await this.prisma.maintenance.update({
+        where: { id },
+        data: updateMaintenanceDto,
+      });
+    } catch (error) {
+      if (error.code === 'P2025')
+        throw new RpcException(new NotFoundException());
+      throw new RpcException(new InternalServerErrorException());
+    }
+  }
+
+  async remove(id: number) {
+    try {
+      return await this.prisma.maintenance.delete({
+        where: { id },
+      });
+    } catch (error) {
+      if (error.code === 'P2025')
+        throw new RpcException(new NotFoundException());
+      throw new RpcException(new InternalServerErrorException());
+    }
   }
 }

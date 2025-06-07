@@ -1,35 +1,60 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { Payload, RpcException } from '@nestjs/microservices';
 import { MaintenanceService } from './maintenance.service';
-import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
-import { UpdateMaintenanceDto } from './dto/update-maintenance.dto';
+import { CreateMaintenanceDto, UpdateMaintenanceDto } from './maintenance.dto';
+import {
+  AutoRpcPattern,
+  IFilter,
+  ResourceMember,
+  ResourceFilter,
+} from 'src/common/decorators';
+import { IPayload } from 'src/config/rabbitmq.config';
 
 @Controller()
 export class MaintenanceController {
   constructor(private readonly maintenanceService: MaintenanceService) {}
 
-  @MessagePattern('createMaintenance')
-  create(@Payload() createMaintenanceDto: CreateMaintenanceDto) {
-    return this.maintenanceService.create(createMaintenanceDto);
+  @AutoRpcPattern()
+  async create(@Payload() data: IPayload<CreateMaintenanceDto>) {
+    if (!data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.maintenanceService.create({
+      ...data.payload,
+      reportedBy: data.user.id,
+      createdBy: data.user.id,
+    });
   }
 
-  @MessagePattern('findAllMaintenance')
-  findAll() {
-    return this.maintenanceService.findAll();
+  @AutoRpcPattern()
+  @ResourceMember('maintenance')
+  async findAll(@ResourceFilter() filter: IFilter) {
+    const data = await this.maintenanceService.findAll(filter);
+    const count = await this.maintenanceService.count(filter);
+    return { data, count };
   }
 
-  @MessagePattern('findOneMaintenance')
-  findOne(@Payload() id: number) {
-    return this.maintenanceService.findOne(id);
+  @AutoRpcPattern()
+  @ResourceMember('maintenance')
+  async findOne(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.maintenanceService.findOne(data.id);
   }
 
-  @MessagePattern('updateMaintenance')
-  update(@Payload() updateMaintenanceDto: UpdateMaintenanceDto) {
-    return this.maintenanceService.update(updateMaintenanceDto.id, updateMaintenanceDto);
+  @AutoRpcPattern()
+  async update(@Payload() data: IPayload<UpdateMaintenanceDto>) {
+    if (!data.id || !data.payload || !data.user) {
+      throw new RpcException('Invalid payload or user data');
+    }
+    return this.maintenanceService.update(data.id, {
+      ...data.payload,
+      updatedBy: data.user.id,
+    });
   }
 
-  @MessagePattern('removeMaintenance')
-  remove(@Payload() id: number) {
-    return this.maintenanceService.remove(id);
+  @AutoRpcPattern()
+  async remove(@Payload() data: IPayload) {
+    if (!data.id) throw new RpcException('Invalid payload or user data');
+    return this.maintenanceService.remove(data.id);
   }
 }
