@@ -10,7 +10,7 @@ import {
   UpdateAssetCategoryDto,
 } from './asset-category.dto';
 import { IFilter } from 'src/common/decorators';
-import { cleanObject } from 'src/common/utils/object.utils';
+import { cleanObject } from 'src/common/utils';
 import { RpcException } from '@nestjs/microservices';
 
 @Injectable()

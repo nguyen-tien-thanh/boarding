@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../../config/prisma.config';
 import { CreateHouseDto, UpdateHouseDto } from './house.dto';
 import { IFilter } from 'src/common/decorators';
-import { cleanObject } from 'src/common/utils/object.utils';
+import { cleanObject } from 'src/common/utils';
 import { RpcException } from '@nestjs/microservices';
 
 @Injectable()

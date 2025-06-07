@@ -9,7 +9,7 @@ import {
   CreateTenantContractDto,
   UpdateTenantContractDto,
 } from './tenant-contract.dto';
-import { cleanObject } from 'src/common/utils/object.utils';
+import { cleanObject } from 'src/common/utils';
 import { RpcException } from '@nestjs/microservices';
 import { IFilter } from 'src/common/decorators';
 

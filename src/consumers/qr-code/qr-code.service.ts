@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../config/prisma.config';
 import { CreateQRCodeDto, UpdateQRCodeDto } from './qr-code.dto';
-import { cleanObject } from 'src/common/utils/object.utils';
+import { cleanObject } from 'src/common/utils';
 import { RpcException } from '@nestjs/microservices';
 import { IFilter } from 'src/common/decorators';
 
