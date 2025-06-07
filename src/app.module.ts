@@ -11,6 +11,10 @@ import { ImageModule } from './consumers/image/image.module';
 import { AssetCategoryModule } from './consumers/asset-category/asset-category.module';
 import { TenantContractModule } from './consumers/tenant-contract/tenant-contract.module';
 import rabbitmqConfig from './config/rabbitmq.config';
+import { APP_FILTER } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { RpcExceptionFilter } from './common/filters';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 @Module({
   imports: [
@@ -29,6 +33,17 @@ import rabbitmqConfig from './config/rabbitmq.config';
     TenantContractModule,
   ],
   controllers: [],
-  providers: [PrismaService],
+  providers: [
+    PrismaService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+
+    {
+      provide: APP_FILTER,
+      useClass: RpcExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
