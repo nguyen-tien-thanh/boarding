@@ -30,7 +30,7 @@ export function ResourceMemberGuard(resource: string) {
         .map((rm) => rm.resourceId)
         .filter((id): id is number => id !== null);
 
-      if (!allowedResourceIds.includes(id)) {
+      if (id !== undefined && !allowedResourceIds.includes(id)) {
         throw new RpcException(new ForbiddenException());
       }
 
