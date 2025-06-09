@@ -272,13 +272,13 @@ async function main() {
 
   // Create resource members for houses
   await Promise.all([
-    prisma.resourceMember.create({
-      data: {
-        resource: 'house',
-        resourceId: house1.id,
-        userId: 1,
-      },
-    }),
+    // prisma.resourceMember.create({
+    //   data: {
+    //     resource: '*',
+    //     resourceId: 0,
+    //     userId: 1,
+    //   },
+    // }),
     prisma.resourceMember.create({
       data: {
         resource: 'house',

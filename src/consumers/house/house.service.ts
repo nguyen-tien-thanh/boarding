@@ -14,15 +14,6 @@ import { RpcException } from '@nestjs/microservices';
 export class HouseService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async count(filter: IFilter) {
-    const where = filter.where || {};
-    const ids =
-      where.id?.in ||
-      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
-      [];
-    return this.prisma.house.count({ where: { id: { in: ids } } });
-  }
-
   async create(createHouseDto: CreateHouseDto) {
     try {
       const house = await this.prisma.house.create({

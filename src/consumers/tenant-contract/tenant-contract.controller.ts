@@ -12,6 +12,7 @@ import {
   ResourceFilter,
 } from 'src/common/decorators';
 import { IPayload } from 'src/config/rabbitmq.config';
+import { countBuilder } from 'src/common/utils';
 
 @Controller()
 export class TenantContractController {
@@ -32,7 +33,7 @@ export class TenantContractController {
   @ResourceMember('tenantContract')
   async findAll(@ResourceFilter() filter: IFilter) {
     const data = await this.tenantContractService.findAll(filter);
-    const count = await this.tenantContractService.count(filter);
+    const count = await countBuilder('tenantContract')(filter);
     return { data, count };
   }
 

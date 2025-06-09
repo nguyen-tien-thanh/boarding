@@ -13,15 +13,6 @@ import { RpcException } from '@nestjs/microservices';
 export class ImageService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async count(filter: IFilter) {
-    const where = filter.where || {};
-    const ids =
-      where.id?.in ||
-      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
-      [];
-    return this.prisma.image.count({ where: { id: { in: ids } } });
-  }
-
   async create(createImageDto: CreateImageDto) {
     try {
       const image = await this.prisma.image.create({

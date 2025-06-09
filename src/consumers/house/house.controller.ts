@@ -9,6 +9,7 @@ import {
   ResourceFilter,
 } from 'src/common/decorators';
 import { IPayload } from 'src/config/rabbitmq.config';
+import { countBuilder } from 'src/common/utils';
 
 @Controller()
 export class HouseController {
@@ -29,7 +30,7 @@ export class HouseController {
   @ResourceMember('house')
   async findAll(@ResourceFilter() filter: IFilter) {
     const data = await this.houseService.findAll(filter);
-    const count = await this.houseService.count(filter);
+    const count = await countBuilder('house')(filter);
     return { data, count };
   }
 

@@ -47,12 +47,6 @@ export class QRCodeService {
     });
   }
 
-  async count(filter?: IFilter) {
-    return await this.prisma.qRCode.count({
-      where: filter?.where,
-    });
-  }
-
   async findOne(id: number) {
     const qrCode = await this.prisma.qRCode.findUnique({
       where: { id },

@@ -9,6 +9,7 @@ import {
   ResourceFilter,
 } from 'src/common/decorators';
 import { IPayload } from 'src/config/rabbitmq.config';
+import { countBuilder } from 'src/common/utils';
 
 @Controller()
 export class ImageController {
@@ -29,7 +30,7 @@ export class ImageController {
   @ResourceMember('image')
   async findAll(@ResourceFilter() filter: IFilter) {
     const data = await this.imageService.findAll(filter);
-    const count = await this.imageService.count(filter);
+    const count = await countBuilder('image')(filter);
     return { data, count };
   }
 

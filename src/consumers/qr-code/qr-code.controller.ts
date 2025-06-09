@@ -9,6 +9,7 @@ import {
   ResourceFilter,
 } from 'src/common/decorators';
 import { IPayload } from 'src/config/rabbitmq.config';
+import { countBuilder } from 'src/common/utils';
 
 @Controller()
 export class QRCodeController {
@@ -29,7 +30,7 @@ export class QRCodeController {
   @ResourceMember('qrCode')
   async findAll(@ResourceFilter() filter: IFilter) {
     const data = await this.qrCodeService.findAll(filter);
-    const count = await this.qrCodeService.count(filter);
+    const count = await countBuilder('qrCode')(filter);
     return { data, count };
   }
 

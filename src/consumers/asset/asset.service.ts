@@ -14,15 +14,6 @@ import { RpcException } from '@nestjs/microservices';
 export class AssetService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async count(filter: IFilter) {
-    const where = filter.where || {};
-    const ids =
-      where.id?.in ||
-      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
-      [];
-    return this.prisma.asset.count({ where: { id: { in: ids } } });
-  }
-
   async create(createAssetDto: CreateAssetDto) {
     try {
       const asset = await this.prisma.asset.create({

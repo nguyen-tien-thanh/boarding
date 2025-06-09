@@ -17,15 +17,6 @@ import { IFilter } from 'src/common/decorators';
 export class TenantContractService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async count(filter: IFilter) {
-    const where = filter.where || {};
-    const ids =
-      where.id?.in ||
-      (where.AND?.find((cond) => cond?.id?.in) || {}).id?.in ||
-      [];
-    return this.prisma.tenantContract.count({ where: { id: { in: ids } } });
-  }
-
   async create(createTenantContractDto: CreateTenantContractDto) {
     try {
       const tenantContract = await this.prisma.tenantContract.create({
