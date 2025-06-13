@@ -75,7 +75,7 @@ model House {
   address     String      @db.Text
   ownerId     Int
   description String?     @db.Text
-  totalArea   Decimal     @db.Decimal(10, 2)
+  totalArea   Int
   status      HouseStatus @default(ACTIVE)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -93,8 +93,8 @@ model Room {
   id          Int        @id @default(autoincrement())
   name        String     @db.VarChar(255)
   roomNumber  String     @db.VarChar(50)
-  area        Decimal    @db.Decimal(10, 2)
-  baseRent    Decimal    @db.Decimal(10, 2)
+  area        Int
+  baseRent    Int
   status      RoomStatus @default(AVAILABLE)
   houseId     Int
   description String?    @db.Text
@@ -148,7 +148,7 @@ model Asset {
   name        String         @db.VarChar(255)
   categoryId  Int
   condition   AssetCondition
-  value       Decimal        @db.Decimal(10, 2)
+  value       Int
   description String?        @db.Text
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
@@ -185,8 +185,8 @@ model TenantContract {
   id          Int            @id @default(autoincrement())
   tenantId    Int
   roomId      Int
-  monthlyRent Decimal        @db.Decimal(10, 2)
-  deposit     Decimal        @db.Decimal(10, 2)
+  monthlyRent Int
+  deposit     Int
   startDate   DateTime       @db.Date
   endDate     DateTime       @db.Date
   status      ContractStatus @default(PENDING)
@@ -229,7 +229,7 @@ model Maintenance {
   description String              @db.Text
   priority    MaintenancePriority @default(MEDIUM)
   status      MaintenanceStatus   @default(REPORTED)
-  cost        Decimal?            @db.Decimal(10, 2)
+  cost        Int?
   reportedAt  DateTime            @default(now())
   completedAt DateTime?
   createdAt   DateTime            @default(now())
