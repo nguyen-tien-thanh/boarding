@@ -22,6 +22,7 @@ export class RoomService {
           roomAssets: { include: { asset: true } },
           tenantContracts: true,
           maintenances: true,
+          house: true,
         },
       });
 
@@ -44,6 +45,12 @@ export class RoomService {
   async findAll(filter: IFilter) {
     return await this.prisma.room.findMany({
       orderBy: { updatedAt: 'desc', ...filter.orderBy },
+      include: {
+        roomAssets: { include: { asset: true } },
+        tenantContracts: true,
+        maintenances: true,
+        house: true,
+      },
       ...filter,
     });
   }
@@ -55,6 +62,7 @@ export class RoomService {
         roomAssets: { include: { asset: true } },
         tenantContracts: true,
         maintenances: true,
+        house: true,
       },
     });
 
@@ -77,6 +85,7 @@ export class RoomService {
           roomAssets: { include: { asset: true } },
           tenantContracts: true,
           maintenances: true,
+          house: true,
         },
       });
 

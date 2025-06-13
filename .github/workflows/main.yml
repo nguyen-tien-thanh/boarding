@@ -43,6 +43,5 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
           ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} \
           "cd docker/371 && \
-          docker-compose stop boarding && \
-          docker-compose pull boarding && \
-          docker-compose up -d boarding" 
+          docker-compose pull gateway && \
+          docker-compose up -d --force-recreate gateway"
