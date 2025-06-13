@@ -9,8 +9,11 @@ async function main() {
   const systemUserId = 1;
 
   // Create houses
-  const house1 = await prisma.house.create({
-    data: {
+  const house1 = await prisma.house.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
       name: 'Sunny Villa Boarding House',
       address: '123 Main Street, District 1, Ho Chi Minh City',
       ownerId: 1,
@@ -22,8 +25,11 @@ async function main() {
     },
   });
 
-  const house2 = await prisma.house.create({
-    data: {
+  const house2 = await prisma.house.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      id: 2,
       name: 'Green Garden Residence',
       address: '456 Oak Avenue, District 7, Ho Chi Minh City',
       ownerId: 2,
@@ -46,8 +52,11 @@ async function main() {
 
   const house1QrImage = await QRCode.toDataURL(house1QrData);
 
-  await prisma.qRCode.create({
-    data: {
+  await prisma.qRCode.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
       houseId: house1.id,
       qrData: house1QrData,
       imageUrl: house1QrImage,
@@ -62,8 +71,11 @@ async function main() {
 
   // Create rooms
   const rooms = await Promise.all([
-    prisma.room.create({
-      data: {
+    prisma.room.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
         name: 'Premium Room A1',
         roomNumber: 'A1',
         area: 25,
@@ -75,8 +87,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.room.create({
-      data: {
+    prisma.room.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
         name: 'Standard Room A2',
         roomNumber: 'A2',
         area: 20,
@@ -88,8 +103,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.room.create({
-      data: {
+    prisma.room.upsert({
+      where: { id: 3 },
+      update: {},
+      create: {
+        id: 3,
         name: 'Garden View Room G1',
         roomNumber: 'G1',
         area: 22,
@@ -107,16 +125,22 @@ async function main() {
 
   // Create asset categories
   const categories = await Promise.all([
-    prisma.assetCategory.create({
-      data: {
+    prisma.assetCategory.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
         name: 'FURNITURE',
         description: 'Furniture and fixtures',
         createdBy: systemUserId,
         updatedBy: systemUserId,
       },
     }),
-    prisma.assetCategory.create({
-      data: {
+    prisma.assetCategory.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
         name: 'ELECTRONICS',
         description: 'Electronic devices and appliances',
         createdBy: systemUserId,
@@ -127,8 +151,11 @@ async function main() {
 
   // Create assets
   const assets = await Promise.all([
-    prisma.asset.create({
-      data: {
+    prisma.asset.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
         name: 'Air Conditioner',
         categoryId: categories[1].id,
         condition: 'GOOD',
@@ -138,8 +165,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.asset.create({
-      data: {
+    prisma.asset.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
         name: 'Single Bed',
         categoryId: categories[0].id,
         condition: 'NEW',
@@ -149,8 +179,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.asset.create({
-      data: {
+    prisma.asset.upsert({
+      where: { id: 3 },
+      update: {},
+      create: {
+        id: 3,
         name: 'Study Desk',
         categoryId: categories[0].id,
         condition: 'GOOD',
@@ -166,8 +199,11 @@ async function main() {
 
   // Assign assets to rooms
   await Promise.all([
-    prisma.roomAsset.create({
-      data: {
+    prisma.roomAsset.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
         roomId: rooms[0].id,
         assetId: assets[0].id,
         quantity: 1,
@@ -176,8 +212,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.roomAsset.create({
-      data: {
+    prisma.roomAsset.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
         roomId: rooms[0].id,
         assetId: assets[1].id,
         quantity: 1,
@@ -186,8 +225,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.roomAsset.create({
-      data: {
+    prisma.roomAsset.upsert({
+      where: { id: 3 },
+      update: {},
+      create: {
+        id: 3,
         roomId: rooms[1].id,
         assetId: assets[1].id,
         quantity: 1,
@@ -196,8 +238,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.roomAsset.create({
-      data: {
+    prisma.roomAsset.upsert({
+      where: { id: 4 },
+      update: {},
+      create: {
+        id: 4,
         roomId: rooms[1].id,
         assetId: assets[2].id,
         quantity: 1,
@@ -211,8 +256,11 @@ async function main() {
   console.log('✅ Room assets assigned');
 
   // Create tenant contract
-  await prisma.tenantContract.create({
-    data: {
+  await prisma.tenantContract.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
       tenantId: 1,
       roomId: rooms[1].id,
       monthlyRent: 3000000,
@@ -229,8 +277,11 @@ async function main() {
   console.log('✅ Tenant contract created');
 
   // Create maintenance request
-  await prisma.maintenance.create({
-    data: {
+  await prisma.maintenance.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
       roomId: rooms[1].id,
       reportedBy: 1,
       assignedTo: 2,
@@ -248,8 +299,11 @@ async function main() {
 
   // Create room images
   await Promise.all([
-    prisma.image.create({
-      data: {
+    prisma.image.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
         imageUrl: 'https://example.com/images/room-a1.jpg',
         entityType: 'ROOM',
         entityId: rooms[0].id,
@@ -258,8 +312,11 @@ async function main() {
         updatedBy: systemUserId,
       },
     }),
-    prisma.image.create({
-      data: {
+    prisma.image.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
         imageUrl: 'https://example.com/images/room-a2.jpg',
         entityType: 'ROOM',
         entityId: rooms[1].id,
@@ -272,22 +329,21 @@ async function main() {
 
   // Create resource members for houses
   await Promise.all([
-    // prisma.resourceMember.create({
-    //   data: {
-    //     resource: '*',
-    //     resourceId: 0,
-    //     userId: 1,
-    //   },
-    // }),
-    prisma.resourceMember.create({
-      data: {
+    prisma.resourceMember.upsert({
+      where: { id: 1 },
+      update: {},
+      create: {
+        id: 1,
         resource: 'house',
         resourceId: house1.id,
         userId: 2,
       },
     }),
-    prisma.resourceMember.create({
-      data: {
+    prisma.resourceMember.upsert({
+      where: { id: 2 },
+      update: {},
+      create: {
+        id: 2,
         resource: 'house',
         resourceId: house2.id,
         userId: 2,
@@ -296,7 +352,6 @@ async function main() {
   ]);
 
   console.log('✅ Resource members created');
-
   console.log('✅ Images created');
 
   console.log('\n🎉 Database seeding completed successfully!');

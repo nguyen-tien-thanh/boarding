@@ -2,9 +2,11 @@ version: '3.8'
 
 services:
   boarding:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: nguyentienthanh2909/371-boarding:latest
     container_name: boarding
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - RABBITMQ_URL=${RABBITMQ_URL}

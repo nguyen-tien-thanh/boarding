@@ -43,7 +43,7 @@ export class MaintenanceDto {
   status: MaintenanceStatus;
 
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsNumber()
   @IsPositive()
   @IsOptional()
   cost?: number;

@@ -24,12 +24,12 @@ export class TenantContractDto {
   roomId: number;
 
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsNumber()
   @IsPositive()
   monthlyRent: number;
 
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsNumber()
   @IsPositive()
   deposit: number;
 

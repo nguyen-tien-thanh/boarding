@@ -25,7 +25,7 @@ export class AssetDto {
   condition: AssetCondition;
 
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsNumber()
   @IsPositive()
   value: number;
 

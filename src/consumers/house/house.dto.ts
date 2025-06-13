@@ -28,7 +28,7 @@ export class HouseDto {
   description?: string;
 
   @Type(() => Number)
-  @IsNumber({ maxDecimalPlaces: 2 })
+  @IsNumber()
   @IsPositive()
   totalArea: number;
 }
