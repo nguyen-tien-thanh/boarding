@@ -67,6 +67,7 @@ model ResourceMember {
   updatedAt   DateTime  @updatedAt
 
   @@map("resourceMembers")
+  @@unique([resource, resourceId, userId])
 }
 
 model House {
