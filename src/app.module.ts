@@ -10,6 +10,7 @@ import { RoomAssetModule } from './consumers/room-asset/room-asset.module';
 import { ImageModule } from './consumers/image/image.module';
 import { AssetCategoryModule } from './consumers/asset-category/asset-category.module';
 import { TenantContractModule } from './consumers/tenant-contract/tenant-contract.module';
+import { ResourceMemberModule } from './consumers/resource-member/resource-member.module';
 import rabbitmqConfig from './config/rabbitmq.config';
 import { APP_FILTER } from '@nestjs/core';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -31,6 +32,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
     RoomAssetModule,
     RoomModule,
     TenantContractModule,
+    ResourceMemberModule,
   ],
   controllers: [],
   providers: [
