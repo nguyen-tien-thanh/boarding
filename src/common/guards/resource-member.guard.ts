@@ -19,7 +19,10 @@ export function ResourceMemberGuard(resource: string) {
       const id = data.id;
 
       if (!user) throw new RpcException(new UnauthorizedException());
-      if (user.username === 'admin') return true;
+      if (user.username === 'admin') {
+        data.allowedResourceIds = [];
+        return true;
+      }
 
       const resourceMembers = await this.prisma.resourceMember.findMany({
         where: { userId: user.id, resource },
@@ -29,6 +32,10 @@ export function ResourceMemberGuard(resource: string) {
       const allowedResourceIds = resourceMembers
         .map((rm) => rm.resourceId)
         .filter((id): id is number => id !== null);
+
+      if (allowedResourceIds.length === 0) {
+        throw new RpcException(new ForbiddenException());
+      }
 
       if (id !== undefined && !allowedResourceIds.includes(id)) {
         throw new RpcException(new ForbiddenException());
