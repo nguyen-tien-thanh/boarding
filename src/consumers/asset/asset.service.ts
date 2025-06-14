@@ -18,7 +18,7 @@ export class AssetService {
     try {
       const asset = await this.prisma.asset.create({
         data: createAssetDto,
-        include: { category: true, roomAssets: true },
+        include: { category: true, roomAssets: { include: { room: true } } },
       });
 
       await this.prisma.resourceMember.create({
@@ -40,6 +40,7 @@ export class AssetService {
   async findAll(filter: IFilter) {
     return await this.prisma.asset.findMany({
       orderBy: { updatedAt: 'desc', ...filter.orderBy },
+      include: { category: true, roomAssets: { include: { room: true } } },
       ...filter,
     });
   }
@@ -47,7 +48,7 @@ export class AssetService {
   async findOne(id: number) {
     const asset = await this.prisma.asset.findUnique({
       where: { id },
-      include: { category: true, roomAssets: true },
+      include: { category: true, roomAssets: { include: { room: true } } },
     });
 
     if (!asset) throw new RpcException(new NotFoundException());
@@ -65,7 +66,7 @@ export class AssetService {
           ...updateAssetDto,
           updatedBy: updateAssetDto.updatedBy,
         }),
-        include: { category: true, roomAssets: true },
+        include: { category: true, roomAssets: { include: { room: true } } },
       });
 
       return updatedAsset;
