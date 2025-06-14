@@ -8,7 +8,7 @@ import {
 import {
   AutoRpcPattern,
   IFilter,
-  ResourceMember,
+  // ResourceMember,
   ResourceFilter,
 } from 'src/common/decorators';
 import { IPayload } from 'src/config/rabbitmq.config';
@@ -30,7 +30,7 @@ export class AssetCategoryController {
   }
 
   @AutoRpcPattern()
-  @ResourceMember('assetCategory')
+  // @ResourceMember('assetCategory')
   async findAll(@ResourceFilter() filter: IFilter) {
     const data = await this.assetCategoryService.findAll(filter);
     const count = await countBuilder('assetCategory')(filter);
@@ -38,7 +38,7 @@ export class AssetCategoryController {
   }
 
   @AutoRpcPattern()
-  @ResourceMember('assetCategory')
+  // @ResourceMember('assetCategory')
   async findOne(@Payload() data: IPayload) {
     if (!data.id) throw new RpcException(new BadRequestException());
     return this.assetCategoryService.findOne(data.id);
